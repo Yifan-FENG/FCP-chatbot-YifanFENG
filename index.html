@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>A Chatbot for Understanding Dyslexia ❤️</title>
+
+		<!-- for mobile screens -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" media="all" href="component/styles/setup.css">
+		<link rel="stylesheet" media="all" href="component/styles/says.css">
+		<link rel="stylesheet" media="all" href="component/styles/reply.css">
+		<link rel="stylesheet" media="all" href="component/styles/typing.css">
+		<link rel="stylesheet" media="all" href="component/styles/input.css">
+
+
+
+		<style>
+			html {
+				font-size: 12px;
+			}
+
+			body {
+				background: ivory;
+				font-family: sans-serif;
+			}
+
+			.bubble-container {
+				height: 100vh;
+			}
+
+			.bubble-container .input-wrap textarea {
+				margin: 0;
+			}
+
+			button {
+				background-color: #22B2B2;
+				color: black;
+				cursor: pointer;
+				padding: 2px 3px;
+				font: bold 1rem arial, helvetica, sans-serif;
+				border-radius: 10px;
+				outline: none;
+			}
+
+			.btn-box {
+				display: flex;
+				flex-wrap: wrap;
+			}
+	/* build a new text reader function for main page (not bubble) */
+			.hornBox {
+				display: flex !important;
+				align-items: center;
+			}
+			.hornBubble{
+				align-items: flex-end;
+			}
+			.hornBox .horn {
+				width: 1.8rem;
+				height: 1.8rem;
+				margin: 0;
+				margin-left: .5rem;
+				cursor: pointer;
+			}
+			/* .hornBubble .horn{
+				opacity: 0;
+				transition: opacity 1s ease-in-out; 
+			}
+			.hornReply{
+				justify-content: flex-end;
+			} */
+			
+			.bubble{
+				position: relative;
+			}
+			.bubble .horn{
+				width: 1.8rem!important;
+				height: 1.8rem!important;
+				margin: 0;
+				margin-left: .5rem;
+				cursor: pointer;
+				transition: opacity 1s ease-in-out;
+				position: absolute;
+				bottom: 0px;
+				right: -2rem;
+				background: none!important;
+			}
+		</style>
+
+	</head>
+
+	<body>
+		<div id="chat">
+			<div class="header">
+				<img src="img/image.png" width="90px;">
+				<div>
+					<div class="hornBox">
+						<h1 class="hornCon">Yifan's chatbot 🙋 </h1><img src="img/horn.png" class="horn">
+					</div>
+					<div class="hornBox">
+						<p class="hornCon">Aims to help you understand and perceive dyslexia with computational practices</p>
+						<img src="img/horn.png" class="horn">
+					</div>
+					<br />
+					<div class="btn-box">
+						<button id="background-color-button" onclick="setBackgroundColor()"> Switch Background Color🌈
+						</button>
+						<button id="font-size-button" onclick="setFontSize()"> Switch Font Size
+						</button>
+						<button id="font-family-button" onclick="setFontFamily()"> Switch Font Style
+						</button>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+
+		<script>
+			let fontFamily = ['sans-serif', 'Arial', 'comic sans ms', 'verdana', 'tahoma', 'century gothic', 'trebuchet ms',
+				'calisto mt'
+			]
+			let fontFamilyIndex = 0;
+
+			function setBackgroundColor() {
+				const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+				document.body.style.backgroundColor = "#" + randomColor;
+			}
+
+			function setFontSize() {
+				let htmlDom = document.getElementsByTagName('html')[0]
+				let fontSize = htmlDom.style.fontSize.replace('px', '');
+				console.log(fontSize);
+				if (fontSize && (fontSize - 0) >= 18) {
+					htmlDom.style.fontSize = '12px';
+					return;
+				}
+				if (!fontSize) {
+					htmlDom.style.fontSize = '14px';
+				} else {
+					htmlDom.style.fontSize = fontSize - 0 + 2 + 'px';
+				}
+			}
+
+			function setFontFamily() {
+				fontFamilyIndex++;
+				if (fontFamilyIndex == fontFamily.length) {
+					fontFamilyIndex = 0;
+				}
+				document.body.style.fontFamily = fontFamily[fontFamilyIndex];
+			}
+
+			let u = new SpeechSynthesisUtterance();
+			u.lang = "en-US"
+			u.volume = 50;
+			u.rate = 1.2;
+			u.pitch = 0.8;
+			let hornBoxs = document.querySelectorAll('.hornBox');
+			for (let i = 0; i < hornBoxs.length; i++) {
+				let horn = hornBoxs[i].querySelector('.horn');
+				horn.onclick = function() {
+					let hornCon = hornBoxs[i].querySelector(".hornCon").innerHTML;
+					u.text = hornCon;
+					speechSynthesis.speak(u)
+				}
+			}
+		</script>
+ 
+
+		<script src="component/js/Bubbles.js"></script>
+		<script>
+			let chatWindow = new Bubbles(document.getElementById("chat"), "chatWindow", {
+				inputCallbackFn: function(o) {
+					let match = function(key) {
+						setTimeout(function() {
+							chatWindow.talk(convo,
+								key) // restart current convo from point found in the answer
+						}, 600)
+					}
+
+					let strip = function(text) {
+						return text.toLowerCase().replace(/[\s.,\/#!$%\^&\*;:{}=\-_'"`~()]/g, "")
+					}
+					// search function
+					let found = false
+					o.convo[o.standingAnswer].reply.forEach(function(e, i) {
+						strip(e.human_response).includes(strip(o.input)) && o.input.length > 0 ?
+							(found = e.bot_answer) :
+							found ? null : (found = false)
+					})
+					found ? match(found) : miss()
+				}
+			})
+
+			// NEW DIALOG
+			let convo = {
+				// first section
+				intro: {
+					bot_says: [
+						"Ni Hao! Hello! 🙋 Welcome to Dyslexia 101. I am here to walk you through a basic introduction to dyslexia and computation ❤️",
+						"My name is Yifan. My pronoun is he/they. I hope we will have a nice conversation today 😄",
+						"<img src= img/hello.gif>"
+					],
+					human_reply: [{
+						human_response: "Hey! That’s great! I am very excited! And I’d like to learn more from you! Not sure if I understand dyslexia correctly 😅",
+						bot_answer: "definition",
+					}, ]
+				},
+				//second section
+				"definition": {
+					bot_says: [
+						"Don’ worry! There is no right or wrong and I am here to tell you more!",
+						"NHS(UK) defines dyslexia as a learning difference which primarily affects one's reading, writing and spelling skills. Or broadly speaking, the ability of processing information.",
+						"In fact, one out of ten people suffers from different levels of dyslexia in the UK."
+					],
+					human_reply: [{ 
+							human_response: "I think I might have heard about it before.",
+							bot_answer: "explore"
+						},
+						{
+							human_response: "That would be terrible for my life! Is there any detailed information that I could follow?",
+							bot_answer: "source"
+						},
+					]
+				},
+				//third section
+				"explore": {
+					bot_says: ["That’s great! If you pay close attention to this page, you will notice some differences than other webpages.",
+								"This interface is re-designed to be dyslexia-friendly. Would you like to know more?"],
+					human_reply: [{
+							human_response: "That is fascinating! I would like to hear more about this inclusive design!",
+							bot_answer: "design"
+						},
+						{
+							human_response: "Sweet! But I am more interested in the history of dyslexia research.",
+							bot_answer: "history"
+						},
+					]
+				},
+				//fourth section
+				"source": {
+					bot_says: ["For sure! Before your exploration, I would like to address that dyslexia is not a learning disability and therefore does not affect one's intelligence!",
+						"Here is a self-check tool for adults and you will see no conditions or questions are directly linked to one's intelligence.", 
+						"<a href='https://dyslexiaida.org/dyslexia-test/' target='_blank'>Self Assessment for Adult</a>",
+						"And here are many good websites for checking relevant info in the UK context!",
+						"<a href='https://www.bdadyslexia.org.uk/' target='_blank'>British Dyslexia Association</a>",
+						"<a href='https://www.nhs.uk/conditions/dyslexia/' target='_blank'>NHS Dyslexia Page</a>",
+						"<a href='https://www.gov.uk/government/speeches/proud-to-be-dyslexic' target='_blank'>UK Gov Dyslexia Blog</a>"
+					],
+					human_reply: [{
+						human_response: "Cool beans! I will take a look later!",
+						bot_answer: "explore"
+					}, ]
+				},
+				//fifth section
+				"history": {
+					bot_says: ["Good! Now let us have a mini history lesson!",
+						"<img src=https://healthandwork.org.uk/wp-content/uploads/2020/09/A-Brief-History-of-Dyslexia-Image-724x1024.png/>",
+						"Dyslexia history and learning difficulties date back to mid-1800s when the debate of the existence of such phenomena was popularized.",
+						"In 1877, the German neurologist, Adolf Kussmaul named it 'text blindness' as he observed reading difficulties amongst children participants.",
+						"10 years later, German physician Rudolf Berlin first used the term “dyslexia” to conclude reading challenges as a result of a disability.", 
+						"The first consensus definition of dyslexia came into our view in 1968.",
+						"<img src=https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fscottishriteforchildren.org%2FTSRHC%2Fmedia%2FMedia-Files%2FNews%2FWorld-Federation-of-Neurologists-Dyslexia-Group-1968-1.jpg%3Fext%3D.jpg&f=1&nofb=1/>",
+						"In 1972, researcher Sandhya Naidoo published Specific Dyslexia, which became the turning point of early dyslexia research.",
+						"Dyslexia Today, research shows that there is no link between dyslexia and intelligence. Assistive technologies are created and refined to improve dyslexic people's life quality."
+
+					],
+					human_reply: [{
+						human_response: "I notice these studies were conducted long time ago. How about dyslexic right development in the UK?",
+						bot_answer: "movements"
+					}, ]
+				},
+				//sixth section
+				"design": {
+					bot_says: [
+						"Firstly, I would like to highlight one popular misconception that Dyslexia is a visual problem.",
+						"Although some children or adults might reverse letters or write backwards, they DO NOT usually have a vision issue seeing those letters!",
+						"Considering that dyslexia’s main problem is reading accurately and fluently, here are some tips for building dyslexia friendly environment.",
+						"a. Think visual: use images to support text.",
+						"b. Write concisely: use direct, active tones.",
+						"c. Beautify content: color contrast, larger font size, larger link spacing, and choose sans serif typefaces.",
+						"d. emphasize key info: scale headings, bold vital messages.", 
+						"For more guidelines, please consult W3W guideline 😊",
+						"<a href='https://www.w3.org/WAI/standards-guidelines/' target='_blank'>W3C Accessibility Standards Overview</a>"
+					],
+					human_reply: [{
+						human_response: "WOW! That is very informative! I feel this is a well-structured solution to designing for dyslexia.",
+						bot_answer: "codesign"
+					}, ]
+				},
+				//seventh section
+				"movements": {
+					bot_says: ["From October 1st 2010, disability discrimination issues became covered by the Equality Act.",
+					"As dyslexia is a lifelong condition and has a significant impact on a person's day-to-day life, it meets the criteria of a disability and is covered by The Equality Act 2010.", 
+					"That said, many microaggressions occur everyday against dyslexic or other neurodivergent people. Would you like to explore some common discriminative activities?"
+				],
+					human_reply: [{
+							human_response: "OMG! I might have unintentionally done that too! I need to educate myself!",
+							bot_answer: "ableism"
+						},
+						{
+							human_response: "Yes! Could you please give me some examples? I will be very carefully afterwards! ",
+							bot_answer: "microaggression"
+						},
+					]
+				},
+				//eighth section
+				"ableism": {
+					bot_says: ["I'd like to talk about ableism first and understand how it affects people with disabilities.",
+					"By definition, ableism is a discrimination or prejudice against individuals with disabilities and see them having less or zero control due to a lack of ability.",
+					"Disabled people, especially those without visible physical disadvantages are prone to have negative experiences with societal expectations.",
+					"Moreover, they are often not taken seriously or treated as equals to 'normal people' by our society and social media keeps reinforcing this pity but inspirational image." 
+					],
+					human_reply: [{
+							human_response: "I should keep thinking what privileges and positions I have before making any actions. Is there a better way to minimize subconsious bias via code and computation?",
+							bot_answer: "codesign"
+						},
+					]
+				},
+				//ninth section
+				"microaggression": {
+					bot_says: ["Firstly, let us grasp the key features of microaggression.",
+						"Microaggressions are usually small things that might be neglected by people except those that it affects.",
+						"Besides, they are often unintended and accidentally delivered. But they will hurt or offend someone with no doubt.",
+						"Here are some words you may speak or hear before that upsets dyslexic populations.", 
+						"I KNOW SOMEONE LIKE YOU, DYSLEXIC.",
+						"YOU DONOT LOOK DISABLED?", 
+						"I CANNOT READ/SPELL PROPERLY! I COULD BE DYSLEXIC NOW.", 
+						"I COULD NEVER HANDLE DYSLEXIA."
+					],
+					human_reply: [{
+							human_response: "How horrendous! I will definitely pay attention to my words next time!",
+							bot_answer: "ableism"
+						},
+					]
+				},
+				//tenth section
+				"codesign": {
+					bot_says: [
+						"It is a good start for newbies in the inclusive design field! Beyond those rules, co-design/innovation is a latest and most favored approach nowadays!", 
+						"Here are two ways of actulizing codesign tasks. Notice: it is just a suggestion and yet to be finished!!", 
+						"First, I suggest that designers can engage one or a few individuals in one design cycle over time.", 
+						"Alternatively, designers can collect a set of real life data that can be used to test design hypotheses.", 
+						"Together both advice are made to respect individual experiences with dyslexia!! Remember, always keep an open heart when you are not knowing dyslexia that well!"
+					],
+					human_reply: [{
+						human_response: "WOW, many thanks for the tips! Do you have more experiences to share regarding carrying out a co-design project?",
+						bot_answer: "reflection"
+					}, ]
+				},
+				//eleventh section
+				"reflection": {
+					bot_says: ["To refine a dedicated co-creation method, here are some advice to avoid inefficient co-creation process",
+						"1. carefully posit participant's impairment in a co-work project",
+						"2. evaluate the meaningfulness and value of the collaboration",
+						"3. balance the viewpoints from stakeholders and participants",
+						"4. thoroughly handle ethical and legal challenges",
+						"5. flexibility and constant adjustment of codesign techniques",
+						"6. rethink issues through data collection, interpretation and presentation"
+					],
+					human_reply: [{
+							human_response: "Fab! I hope those high tech companies would deal with this question thoughtfully in assistive design.",
+							bot_answer: "goodcomputation"
+						},
+						{
+							human_response: "Love it!",
+							bot_answer: "future"
+						},
+					]
+				},
+				//twelfth section
+				"future": {
+					bot_says: ["Luckily more and more designers, researchers, and educators work for disability justice and good computational practices.",
+						"Ignorance is not an excuse. Justice needs our collaborative and continuous effort ❤️❤️❤️",
+						"As this project is based in UAL, I would like to share UAL's approach to dyslexic students and employees.",
+						"<a href='https://www.arts.ac.uk/students/student-services/disability-and-dyslexia' target='_blank'>UAL Dyslexia Support</a>"
+
+					],
+					human_reply: [{
+						human_response: "Thank you Yifan! You have fed me with a lot of essential info!",
+						bot_answer: "thanks"
+					}, ]
+				},
+				//thirteenth section
+				"goodcomputation": {
+					bot_says: ["There is a growing organization specifically investigating inequitable design in the tech industry", 
+					"<a href='https://designjustice.org/' target='_blank'>Design Justice</a>",
+					"Besides, more designers and researchers acknowledge that the popular pragmatic medical model of creating technology has its limitations - only focusing on fixing impairments.", 
+					"More perspectives such as 'from curing to caring' and 'privileging individual's unique lived experience' are encouraged in the assistive design community.",
+					"Most importantly, developing a cultural understanding of disability is advocated! The concept of 'applying technology to achieve normality' for dyslexic groups is outdated!"
+					],
+					human_reply: [{
+						human_response: "That is an amazing job! I am very optimistic about dyslexia justice via code and technology.",
+						bot_answer: "future"
+					}, ]
+				},
+				//fourteenth section
+				"thanks": {
+					bot_says: ["I am very honored to have this chance chatting with you 😄",
+						"I hope you have learned a lot about dyslexia, disability rights movement, and their socio-cultural critique on inclusive technology development.",
+						"Now it is your time to show your contribution to our dyslexic community and think about how to bring societal good via computation and technology!",
+						"Besides, it would be great if you could share me with your friends! Let's work towards equality!",
+						"PS. ALWAYS KEEP OPEN MINDED AND RESPECT DIVERSITY!!!"
+					],
+					human_reply: [{
+						human_response: "I will! Thank you!!",
+						bot_answer: "goodbye"
+					}, ]
+				},
+				//fifteenth section
+				"goodbye": {
+					bot_says: ["Thanks for spending your precious time with me! You can always come back to me for more information!", 
+					"With our collective effort for dyslexic community, I genuinely hope that our society will be more tolerant of differences and embrace the true diversity!",
+					"<img src=https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F57%2F58%2F2f%2F57582f459005384a6d6a55b0a0f0cfd6.gif&f=1&nofb=1/>"
+					],
+				},
+			}
+			chatWindow.talk(convo)
+		</script>
+	</body>
